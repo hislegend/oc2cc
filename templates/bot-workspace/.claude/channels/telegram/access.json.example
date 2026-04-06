@@ -1,0 +1,6 @@
+{
+  "dmPolicy": "allowlist",
+  "allowFrom": ["YOUR_TELEGRAM_USER_ID"],
+  "groups": {},
+  "pending": {}
+}

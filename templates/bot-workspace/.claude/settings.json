@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": ["Read","Edit","Write","Bash(*)","WebFetch","WebSearch"]
+  },
+  "env": {
+    "PATH": "/Users/YOUR_USERNAME/.bun/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+  },
+  "hooks": {
+    "SessionStart": [{"hooks": [{"type": "command","command": "cat .claude/bootstrap/BOOT.md 2>/dev/null; echo '---'; cat memory/$(date +%Y-%m-%d).md 2>/dev/null || echo 'No daily note yet.'; echo '---'; cat memory/decisions-pending.md 2>/dev/null || echo 'No pending decisions.'"}]}],
+    "PreCompact": [{"hooks": [{"type": "command","command": "echo '⚠️ COMPACTING: Write today work to memory/ before compression!'"}]}]
+  }
+}

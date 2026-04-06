@@ -1,0 +1,6 @@
+.env
+*.env
+**/channels/telegram/.env
+**/.claude/statsig/
+**/memory/
+!**/memory/.gitkeep
