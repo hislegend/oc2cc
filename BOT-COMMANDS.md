@@ -6,7 +6,7 @@
 ---
 
 ## 뉴엔도 (@endo_claude_bot)
-- **계정**: jk1
+- **계정**: account-A
 - **봇토큰**: `~/.claude/channels/telegram/.env`
 
 ```bash
@@ -19,7 +19,7 @@ claude --dangerously-skip-permissions --channels plugin:telegram@claude-plugins-
 ---
 
 ## 토네가와 (@tonegawa_openclaw_bot)
-- **계정**: jk1
+- **계정**: account-A
 - **봇토큰**: `~/agents/tonegawa-channels/.claude/channels/telegram/.env`
 - **그룹**: 창작방 `-1003716946094`
 
@@ -33,7 +33,7 @@ claude --dangerously-skip-permissions --channels plugin:telegram@claude-plugins-
 ---
 
 ## 이치죠 (@ichijou_openclaw_bot 또는 실제 username 확인)
-- **계정**: jk2
+- **계정**: account-B
 - **봇토큰**: `~/agents/ichijou-channels/.claude/channels/telegram/.env`
 - **그룹**: 디자인실 `-1003899620039`
 
@@ -47,7 +47,7 @@ claude --dangerously-skip-permissions --channels plugin:telegram@claude-plugins-
 ---
 
 ## 쿠로사키 (@kurosaki_openclaw_bot 또는 실제 username 확인)
-- **계정**: jk2
+- **계정**: account-B
 - **봇토큰**: `~/agents/kurosaki-channels/.claude/channels/telegram/.env`
 - **그룹**: 비즈니스방 `-1003871541930`
 
