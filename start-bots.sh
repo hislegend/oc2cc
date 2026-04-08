@@ -5,6 +5,28 @@
 
 SESSION="cc-bots"
 
+# ── 구버전 텔레그램 플러그인 캐시 정리 ────────────────────────────
+PLUGIN_CACHE="$HOME/.claude/plugins/cache/claude-plugins-official/telegram"
+if [ -d "$PLUGIN_CACHE" ]; then
+  LATEST=$(ls -v "$PLUGIN_CACHE" | tail -1)
+  for dir in "$PLUGIN_CACHE"/*/; do
+    VER=$(basename "$dir")
+    if [ "$VER" != "$LATEST" ]; then
+      echo "🗑 구버전 플러그인 삭제: telegram/$VER"
+      rm -rf "$dir"
+    fi
+  done
+  echo "✅ 텔레그램 플러그인: $LATEST (최신)"
+fi
+
+# ── 텔레그램 고스트 프로세스 정리 ─────────────────────────────────
+GHOST_KILLED=0
+for pid in $(pgrep -f "telegram.*server" 2>/dev/null); do
+  kill "$pid" 2>/dev/null && GHOST_KILLED=$((GHOST_KILLED + 1))
+done
+[ $GHOST_KILLED -gt 0 ] && echo "🗑 고스트 프로세스 ${GHOST_KILLED}개 정리"
+
+# ── 봇 시작 ──────────────────────────────────────────────────────
 tmux kill-session -t $SESSION 2>/dev/null
 tmux new-session -d -s $SESSION -n "bot1"
 

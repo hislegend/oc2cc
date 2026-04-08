@@ -1,12 +1,62 @@
 {
   "permissions": {
-    "allow": ["Read","Edit","Write","Bash(*)","WebFetch","WebSearch"]
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Bash(*)",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "mcp__plugin_telegram_telegram__*",
+      "mcp__plugin_slack_slack__*",
+      "mcp__codex__*",
+      "mcp__context7__*",
+      "mcp__pencil__*",
+      "mcp__claude_ai_Slack__*",
+      "mcp__claude_ai_Notion__*",
+      "mcp__claude_ai_Supabase__*",
+      "mcp__claude_ai_Vercel__*",
+      "mcp__claude_ai_Figma__*",
+      "mcp__claude_ai_Google_Calendar__*",
+      "mcp__claude_ai_Gmail__*"
+    ]
   },
   "env": {
     "PATH": "/Users/YOUR_USERNAME/.bun/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
   },
   "hooks": {
-    "SessionStart": [{"hooks": [{"type": "command","command": "cat .claude/bootstrap/BOOT.md 2>/dev/null; echo '---'; cat memory/$(date +%Y-%m-%d).md 2>/dev/null || echo 'No daily note yet.'; echo '---'; cat memory/decisions-pending.md 2>/dev/null || echo 'No pending decisions.'"}]}],
-    "PreCompact": [{"hooks": [{"type": "command","command": "echo '⚠️ COMPACTING: Write today work to memory/ before compression!'"}]}]
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .claude/bootstrap/BOOT.md 2>/dev/null; echo '---'; cat memory/$(date +%Y-%m-%d).md 2>/dev/null || echo 'No daily note yet.'; echo '---'; cat memory/decisions-pending.md 2>/dev/null || echo 'No pending decisions.'"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '⚠️ COMPACTING: Write today work to memory/ before compression!'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Check if the session produced meaningful work. If so, has memory been captured (memory/ updated)? If memory was NOT captured, respond {\"ok\": false, \"reason\": \"Session work not captured in memory.\"}. If memory was captured or no meaningful work was done, respond {\"ok\": true}.",
+            "model": "claude-haiku-4-5"
+          }
+        ]
+      }
+    ]
   }
 }

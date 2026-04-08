@@ -5,6 +5,9 @@
 
 [한국어](./README.ko.md)
 
+> **v1.1** — Auto-recovery, wildcard permissions, plugin cache cleanup, ghost process cleanup, Stop hook.  
+> Already set up? See [UPGRADE.md](./UPGRADE.md) for what's new.
+
 ---
 
 ## Why oc2cc?
@@ -17,6 +20,7 @@ OpenClaw and similar gateway products stopped working overnight.
 ## What you get
 
 - ✅ Step-by-step migration guide (OpenClaw → CC Channels)
+- ✅ Upgrade guide for existing users ([UPGRADE.md](./UPGRADE.md))
 - ✅ Bot workspace template (SOUL.md, IDENTITY.md, USER.md, MEMORY.md)
 - ✅ `settings.json` with lifecycle hooks (SessionStart, PreCompact)
 - ✅ `start-bots.sh` — launch all bots in one command via tmux
@@ -43,9 +47,13 @@ Then follow [MIGRATION-GUIDE.md](./MIGRATION-GUIDE.md).
 ```
 oc2cc/
 ├── MIGRATION-GUIDE.md          ← Full OpenClaw → CC Channels guide
+├── UPGRADE.md                  ← v1.1 upgrade guide for existing users
 ├── BOT-COMMANDS.md             ← Per-bot start commands reference
-├── start-bots.sh               ← Launch all bots via tmux
+├── start-bots.sh               ← Launch all bots via tmux (+ cache cleanup)
 └── templates/
+    ├── scripts/
+    │   ├── check-bots.sh       ← Auto-recovery via cron
+    │   └── cleanup-telegram-ghosts.sh  ← Kill stale polling processes
     └── bot-workspace/          ← Copy this for each new bot
         ├── CLAUDE.md
         ├── SOUL.md
