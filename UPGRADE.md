@@ -1,10 +1,45 @@
-# oc2cc 업그레이드 가이드 (v1.0 → v1.1)
+# oc2cc 업그레이드 가이드
 
 > 이미 oc2cc로 봇을 세팅한 사람을 위한 추가 설정 가이드.  
 > 각 항목은 독립적이라 필요한 것만 골라서 적용할 수 있어요.  
-> 작성일: 2026-04-08
+> 최신 패치가 위에 있어요.
 
 ---
+
+# v1.2 (2026-04-11)
+
+## 텔레그램 Forum 토픽 지원
+
+### 뭐가 안 됐나요?
+CC 텔레그램 플러그인은 Forum 그룹의 토픽(Topic)을 구분하지 못해요. 봇이 메시지를 받아도 어느 토픽인지 모르고, 답장도 토픽 밖으로 나갈 수 있어요.
+
+### 이걸 하면 뭐가 되나요?
+- 봇이 어느 토픽에서 온 메시지인지 인식
+- 답장이 올바른 토픽 안에 들어감
+- 하나의 그룹에서 토픽별로 다른 주제를 나눠서 봇과 대화 가능
+
+### 어떻게 하면 되나요?
+
+```bash
+bash templates/scripts/patch-telegram-forum.sh
+```
+
+그리고 CC에서 `/reload-plugins` 실행.
+
+이 스크립트가 하는 일:
+- 텔레그램 플러그인 server.ts에 `message_thread_id` 지원 추가
+- 인바운드: 어느 토픽인지 meta에 포함
+- 아웃바운드: 답장할 때 올바른 토픽으로 전송
+- 멀티봇이면 다른 봇 캐시에도 자동 복사
+
+### 주의사항
+- 공식 플러그인 캐시를 직접 수정하는 거라, **플러그인 업데이트 시 초기화**됩니다
+- 업데이트 후 이 스크립트를 다시 실행하면 돼요
+- Forum 모드는 슈퍼그룹에서만 동작해요
+
+---
+
+# v1.1 (2026-04-08)
 
 ## 1. 권한 팝업 없애기
 
@@ -260,48 +295,20 @@ cp templates/scripts/check-bots.sh ~/agents/
 cp templates/scripts/cleanup-telegram-ghosts.sh ~/.claude/scripts/
 chmod +x ~/agents/check-bots.sh ~/.claude/scripts/cleanup-telegram-ghosts.sh
 
-# 3. check-bots.sh에서 BOTS= 줄 수정 (자기 봇에 맞게)
+# 3. Forum 토픽 패치 (선택)
+bash templates/scripts/patch-telegram-forum.sh
+
+# 4. check-bots.sh에서 BOTS= 줄 수정 (자기 봇에 맞게)
 nano ~/agents/check-bots.sh
 
-# 4. cron 등록
+# 5. cron 등록
 (crontab -l 2>/dev/null; echo '*/5 * * * * /bin/zsh ~/agents/check-bots.sh >> /tmp/check-bots.log 2>&1') | crontab -
 
-# 5. 각 봇의 settings.json 업데이트 (위 1, 5번 참고)
+# 6. 각 봇의 settings.json 업데이트 (위 1, 5번 참고)
 
-# 6. 봇 재시작
+# 7. 봇 재시작
 bash ~/agents/start-bots.sh
 ```
-
----
-
-## 7. 텔레그램 Forum 토픽 지원
-
-### 뭐가 안 됐나요?
-CC 텔레그램 플러그인은 Forum 그룹의 토픽(Topic)을 구분하지 못해요. 봇이 메시지를 받아도 어느 토픽인지 모르고, 답장도 토픽 밖으로 나갈 수 있어요.
-
-### 이걸 하면 뭐가 되나요?
-- 봇이 어느 토픽에서 온 메시지인지 인식
-- 답장이 올바른 토픽 안에 들어감
-- 하나의 그룹에서 토픽별로 다른 주제를 나눠서 봇과 대화 가능
-
-### 어떻게 하면 되나요?
-
-```bash
-bash templates/scripts/patch-telegram-forum.sh
-```
-
-그리고 CC에서 `/reload-plugins` 실행.
-
-이 스크립트가 하는 일:
-- 텔레그램 플러그인 server.ts에 `message_thread_id` 지원 추가
-- 인바운드: 어느 토픽인지 meta에 포함
-- 아웃바운드: 답장할 때 올바른 토픽으로 전송
-- 멀티봇이면 다른 봇 캐시에도 자동 복사
-
-### 주의사항
-- 공식 플러그인 캐시를 직접 수정하는 거라, **플러그인 업데이트 시 초기화**됩니다
-- 업데이트 후 이 스크립트를 다시 실행하면 돼요
-- Forum 모드는 슈퍼그룹에서만 동작해요
 
 ---
 
