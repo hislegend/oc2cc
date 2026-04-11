@@ -91,6 +91,21 @@ See [MIGRATION-GUIDE.md#troubleshooting](./MIGRATION-GUIDE.md#troubleshooting) f
 - `not on the approved channels` — Statsig cache fix
 - iCloud file deadlock — brctl download fix
 
+## Safety Notes
+
+- `--dangerously-skip-permissions` is required for unattended bot operation (no human to approve each tool call). **Only use this on local machines or trusted environments** — never on shared servers with untrusted code.
+- The template `settings.json` includes minimal permissions. Add only the MCP tools your bot actually needs.
+- Forum topic patch (`patch-telegram-forum.sh`) modifies the official plugin cache directly. This is a temporary workaround until Anthropic adds native topic support. Re-run after plugin updates.
+
+## Known Trade-offs
+
+| Feature | Trade-off |
+|---|---|
+| `--dangerously-skip-permissions` | Required for unattended bots, bypasses tool approval prompts |
+| Forum topic patch | Modifies official plugin cache, resets on plugin update |
+| `check-bots.sh` auto-recovery | Restarts crashed bots but loses session context |
+| Multi-account via `CLAUDE_CONFIG_DIR` | Each bot needs separate login, tokens stored per directory |
+
 ## License
 
 MIT

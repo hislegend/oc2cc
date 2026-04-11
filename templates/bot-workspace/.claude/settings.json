@@ -1,4 +1,5 @@
 {
+  "_comment": "Minimal permissions for telegram bot. Add more MCP tools as needed (e.g., mcp__claude_ai_Notion__* for Notion).",
   "permissions": {
     "allow": [
       "Read",
@@ -9,18 +10,7 @@
       "Grep",
       "WebFetch",
       "WebSearch",
-      "mcp__plugin_telegram_telegram__*",
-      "mcp__plugin_slack_slack__*",
-      "mcp__codex__*",
-      "mcp__context7__*",
-      "mcp__pencil__*",
-      "mcp__claude_ai_Slack__*",
-      "mcp__claude_ai_Notion__*",
-      "mcp__claude_ai_Supabase__*",
-      "mcp__claude_ai_Vercel__*",
-      "mcp__claude_ai_Figma__*",
-      "mcp__claude_ai_Google_Calendar__*",
-      "mcp__claude_ai_Gmail__*"
+      "mcp__plugin_telegram_telegram__*"
     ]
   },
   "env": {

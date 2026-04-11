@@ -5,56 +5,42 @@
 
 ---
 
-## 뉴엔도 (@endo_claude_bot)
+## Bot 1 (@your_bot1_username)
 - **계정**: account-A
 - **봇토큰**: `~/.claude/channels/telegram/.env`
 
 ```bash
-cd ~/agents/devbot-channels && \
+cd ~/agents/bot1-channels && \
 claude --dangerously-skip-permissions --channels plugin:telegram@claude-plugins-official
 ```
 
-> CLAUDE_CONFIG_DIR 생략 → 기본 `~/.claude` 사용 (뉴엔도 전용)
+> CLAUDE_CONFIG_DIR 생략 → 기본 `~/.claude` 사용 (Bot 1 전용)
 
 ---
 
-## 토네가와 (@tonegawa_openclaw_bot)
+## Bot 2 (@your_bot2_username)
 - **계정**: account-A
-- **봇토큰**: `~/agents/tonegawa-channels/.claude/channels/telegram/.env`
-- **그룹**: 창작방 `-1003716946094`
+- **봇토큰**: `~/agents/bot2-channels/.claude/channels/telegram/.env`
+- **그룹**: `-100XXXXXXXXXX`
 
 ```bash
-cd ~/agents/tonegawa-channels && \
-CLAUDE_CONFIG_DIR=~/agents/tonegawa-channels/.claude \
-TELEGRAM_STATE_DIR=~/agents/tonegawa-channels/.claude/channels/telegram \
+cd ~/agents/bot2-channels && \
+CLAUDE_CONFIG_DIR=~/agents/bot2-channels/.claude \
+TELEGRAM_STATE_DIR=~/agents/bot2-channels/.claude/channels/telegram \
 claude --dangerously-skip-permissions --channels plugin:telegram@claude-plugins-official
 ```
 
 ---
 
-## 이치죠 (@ichijou_openclaw_bot 또는 실제 username 확인)
+## Bot 3 (@your_bot3_username)
 - **계정**: account-B
-- **봇토큰**: `~/agents/ichijou-channels/.claude/channels/telegram/.env`
-- **그룹**: 디자인실 `-1003899620039`
+- **봇토큰**: `~/agents/bot3-channels/.claude/channels/telegram/.env`
+- **그룹**: `-100XXXXXXXXXX`
 
 ```bash
-cd ~/agents/ichijou-channels && \
-CLAUDE_CONFIG_DIR=~/agents/ichijou-channels/.claude \
-TELEGRAM_STATE_DIR=~/agents/ichijou-channels/.claude/channels/telegram \
-claude --dangerously-skip-permissions --channels plugin:telegram@claude-plugins-official
-```
-
----
-
-## 쿠로사키 (@kurosaki_openclaw_bot 또는 실제 username 확인)
-- **계정**: account-B
-- **봇토큰**: `~/agents/kurosaki-channels/.claude/channels/telegram/.env`
-- **그룹**: 비즈니스방 `-1003871541930`
-
-```bash
-cd ~/agents/kurosaki-channels && \
-CLAUDE_CONFIG_DIR=~/agents/kurosaki-channels/.claude \
-TELEGRAM_STATE_DIR=~/agents/kurosaki-channels/.claude/channels/telegram \
+cd ~/agents/bot3-channels && \
+CLAUDE_CONFIG_DIR=~/agents/bot3-channels/.claude \
+TELEGRAM_STATE_DIR=~/agents/bot3-channels/.claude/channels/telegram \
 claude --dangerously-skip-permissions --channels plugin:telegram@claude-plugins-official
 ```
 
@@ -77,7 +63,7 @@ bash ~/agents/start-bots.sh
 tmux attach -t cc-bots
 
 # 특정 봇 창으로 이동 (접속 후)
-Ctrl+B, 숫자키 (0=뉴엔도, 1=토네가와, 2=이치죠, 3=쿠로사키)
+Ctrl+B, 숫자키 (0=Bot1, 1=Bot2, 2=Bot3, ...)
 
 # 세션 유지하며 detach
 Ctrl+B, d
