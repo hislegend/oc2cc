@@ -5,7 +5,7 @@
 
 [한국어](./README.ko.md)
 
-> **v1.1** — Auto-recovery, wildcard permissions, plugin cache cleanup, ghost process cleanup, Stop hook.  
+> **v1.2** — Forum topic support, auto-recovery, wildcard permissions, plugin cache cleanup.  
 > Already set up? See [UPGRADE.md](./UPGRADE.md) for what's new.
 
 ---
