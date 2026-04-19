@@ -6,6 +6,258 @@
 
 ---
 
+# v1.3 (2026-04-19)
+
+## 1. 텔레그램 플러그인 0.0.6 업그레이드
+
+### 뭐가 바뀌었나요?
+텔레그램 플러그인 v0.0.6은 MCP 도구가 확장됐어요. 이전(v0.0.4)엔 `reply`만 있었는데 이제는:
+
+- `reply` — 메시지 보내기 (기존)
+- `edit_message` — 이미 보낸 메시지 수정 (중간 진행 업데이트용, 푸시 알림 없음)
+- `react` — 이모지 반응 (👀 👍 ❤️ 🔥 👎 등 Telegram 허용 목록만)
+- `download_attachment` — 상대가 보낸 파일(`attachment_file_id`) 다운로드
+
+즉 긴 작업 중 중간 진행은 `edit_message`, 수신 확인은 `react`, 대화를 끊지 않고 처리 가능해요.
+
+### 어떻게 하면 되나요?
+
+CC 세션 안에서:
+```
+/plugin install telegram@claude-plugins-official
+/reload-plugins
+```
+
+### ⚠️ 업그레이드 중 자주 발생하는 이슈
+
+**(가) `.mcp.json` 누락**  
+0.0.6 디렉토리는 생겼는데 `.mcp.json`이 빠지는 경우가 있어요. 이 상태에서 `/reload-plugins` 하면 MCP 서버가 로드 안 되고, 구버전 bun 프로세스가 그대로 돌아요.
+
+**확인**:
+```bash
+ls ~/agents/봇-channels/.claude/plugins/cache/claude-plugins-official/telegram/0.0.6/.mcp.json
+ls ~/agents/봇-channels/.claude/plugins/cache/claude-plugins-official/telegram/0.0.6/.claude-plugin/plugin.json
+```
+
+**복구 — 동작하는 다른 봇에서 전체 복사**:
+```bash
+rm -rf ~/agents/망가진봇-channels/.claude/plugins/cache/claude-plugins-official/telegram/0.0.6
+cp -R ~/agents/정상봇-channels/.claude/plugins/cache/claude-plugins-official/telegram/0.0.6 \
+      ~/agents/망가진봇-channels/.claude/plugins/cache/claude-plugins-official/telegram/
+```
+
+**(나) 구버전 bun 프로세스 잔존**  
+`installed_plugins.json`은 0.0.6으로 바뀌었는데 실제 프로세스는 0.0.4 그대로인 경우:
+```bash
+ps aux | grep "bun run.*telegram" | grep -v grep
+# --cwd 뒤 경로에서 버전 확인. 0.0.4 나오면 CC 세션 재시작 필요
+```
+
+CC 세션 종료 → 재진입하면 stdio 부모가 죽으면서 구버전 bun도 자동 정리돼요.
+
+---
+
+## 2. `installed_plugins.json` 중복 레코드 주의
+
+### 뭐가 발생하나요?
+
+`/plugin install telegram@claude-plugins-official` 실행하면 두 위치에 레코드가 생겨요:
+
+- `~/.claude/plugins/installed_plugins.json` (global/user scope)
+- `~/agents/봇-channels/.claude/plugins/installed_plugins.json` (project scope)
+
+같은 플러그인이 **scope 다른 installPath**로 두세 번 등록되면 CC가 MCP 서버를 spawn 스킵하는 현상이 생겨요. 증상: `/reload-plugins` 출력이 "1 plugin MCP server"인데 텔레그램 MCP 도구가 세션에 뜨지 않음.
+
+### 체크 방법
+
+```bash
+cat ~/.claude/plugins/installed_plugins.json | grep -A3 "telegram@claude-plugins-official"
+cat ~/agents/봇-channels/.claude/plugins/installed_plugins.json
+```
+
+같은 projectPath·installPath 쌍이 여러 번 등장하거나, projectPath가 플러그인 캐시 서브디렉토리 같은 이상한 경로를 가리키면 corrupt.
+
+### 해결
+
+**한 쪽만 유지** (보통 project scope):
+```bash
+# 글로벌에서 해당 프로젝트 레코드만 수동 제거 (다른 프로젝트 레코드는 유지)
+# ~/.claude/plugins/installed_plugins.json 편집
+
+# 프로젝트 scope 레코드는 아래처럼 하나만:
+cat > ~/agents/봇-channels/.claude/plugins/installed_plugins.json <<EOF
+{
+  "version": 2,
+  "plugins": {
+    "telegram@claude-plugins-official": [
+      {
+        "scope": "project",
+        "projectPath": "$HOME/agents/봇-channels",
+        "installPath": "$HOME/agents/봇-channels/.claude/plugins/cache/claude-plugins-official/telegram/0.0.6",
+        "version": "0.0.6",
+        "installedAt": "YYYY-MM-DDTHH:MM:SS.000Z",
+        "lastUpdated": "YYYY-MM-DDTHH:MM:SS.000Z"
+      }
+    ]
+  }
+}
+EOF
+```
+
+그 후 CC 완전 재시작.
+
+---
+
+## 3. `access.json` Hot Reload (재시작 없이 즉시 반영)
+
+### 뭐가 되나요?
+
+access.json을 수정하면 **봇 재시작 없이 즉시 반영**돼요. 그룹 추가·requireMention 토글·allowFrom 변경 같은 작업이 몇 초 안에 반영.
+
+### 조건
+
+환경변수 `TELEGRAM_ACCESS_MODE=static`이 **설정돼 있지 않아야** 함. 기본값은 dynamic이라 보통 그대로 두면 hot reload 됨.
+
+**static 모드의 경우**:
+- access.json이 부팅 시 한 번만 읽히고 그 후엔 파일 변경 무시
+- 페어링(pending) 기능이 allowlist로 다운그레이드됨
+- 빠른 iteration 중이라면 static 쓰지 말 것
+
+### 확인
+
+alias나 launch 스크립트에 `TELEGRAM_ACCESS_MODE=static`이 있는지 확인:
+```bash
+grep "TELEGRAM_ACCESS_MODE" ~/.zshrc ~/agents/*/start.sh 2>/dev/null
+```
+
+없으면 자동으로 dynamic 모드 → hot reload 작동.
+
+### 활용
+
+여러 그룹 추가하면서 requireMention 토글 자주 바꿔야 하는 초기 셋업 구간에서 유용해요. CC 세션 끄고 다시 켜는 시간 절약.
+
+---
+
+## 4. BotFather Privacy Mode — 그룹 봇-to-봇 대화 트러블슈팅
+
+### 뭐가 안 됐나요?
+
+두 봇(예: 엔도 + 이치죠)을 같은 그룹에 초대했는데, 이치죠 봇이 엔도 멘션해서 보낸 답글을 **엔도가 수신 못 하는** 현상.
+
+원인: Telegram의 **Privacy Mode 기본 ON** + **봇-to-봇 이벤트 기본 차단**.
+
+### Privacy Mode 동작
+
+**ON (기본)**:
+봇은 그룹에서 다음 4종만 수신:
+- `@봇이름` 직접 멘션
+- `/` 커맨드
+- 봇 자신의 메시지에 대한 리플
+- 서비스 메시지 (봇 추가·제거 이벤트 등)
+
+**OFF**:
+그룹의 모든 일반 메시지를 수신. 단 **다른 봇이 보낸 메시지**는 추가 권한이 있어야 받음.
+
+### 해결 절차
+
+**1단계 — BotFather에서 Privacy Mode OFF**:
+```
+@BotFather → /mybots → @봇이름 → Bot Settings → Group Privacy → Turn off
+```
+
+**2단계 — 그룹에서 봇 관리자 승격 + `Can read all messages` 권한 부여**
+
+**3단계 — ⚠️ 봇 kick → 재초대 필수**
+
+Privacy Mode 변경 직후 기존 그룹 멤버 상태의 봇에는 **즉시 반영 안 됨** (Telegram 클라이언트·서버 캐시). 반드시 다음을 수행:
+1. 그룹에서 봇 제거 (kick)
+2. 다시 초대
+3. 재초대 시 새 Privacy Mode로 등록
+
+### 검증 방법
+
+`.claude/channels/telegram/message-store.jsonl`에서 해당 그룹의 다른 봇 메시지가 찍히는지 확인 (섹션 6 참고).
+
+### DM만 쓸 거면 무시해도 되나요?
+
+네. Privacy Mode는 **그룹 전용 규칙**. DM(1:1)은 영향 없음. 봇이 DM은 무조건 모두 수신.
+
+---
+
+## 5. `message-store.jsonl` 기반 수신 디버깅
+
+### 뭐가 되나요?
+
+텔레그램 플러그인 v0.0.6은 수신한 모든 메시지를 `~/agents/봇-channels/.claude/channels/telegram/message-store.jsonl`에 한 줄씩 저장해요 (jsonl 포맷). 이걸 분석해서 "왜 특정 메시지를 봇이 안 받냐"를 명확히 판정할 수 있어요.
+
+### 활용 예시
+
+**특정 그룹 수신 이력 전수 조회**:
+```bash
+grep '"chat_id": "-1003XXXXXXX"' ~/agents/봇-channels/.claude/channels/telegram/message-store.jsonl
+```
+
+**다른 봇 메시지가 내 봇 수신 큐에 들어왔는지 확인 (Privacy Mode 검증)**:
+```bash
+grep '"user_id": "다른_봇_id"' message-store.jsonl
+# 없으면 → Telegram 봇-to-봇 필터 작동 중 (섹션 4 참고)
+```
+
+**요청이 필터에 걸리는지 수신 자체가 안 되는지 판별**:
+- `message-store.jsonl`에 메시지가 있는데 봇이 응답 안 했다 → `access.json` 필터 (requireMention·allowFrom)
+- `message-store.jsonl`에 메시지가 없다 → Telegram Bot API 이벤트 자체 미수신 (Privacy Mode·bot-to-bot 필터·봇 그룹 미가입 등)
+
+### 보안 주의
+
+`message-store.jsonl`은 평문이라 민감 정보(비밀번호·토큰·PII)가 수신되면 그대로 저장돼요. 정기적으로 로테이션하거나 민감 메시지 수신 후 수동 정리 고려. `.gitignore` 필수.
+
+---
+
+## 6. `research` 스킬 user scope 공유
+
+### 뭐가 되나요?
+
+여러 CC 봇이 **동일한 연구 방법론**(수신→수집→분석→아카이브→wiki→보고)을 자동으로 따르게 하는 user scope 스킬. 봇별로 반복 설치할 필요 없음.
+
+### 어떻게 하면 되나요?
+
+`~/.claude/skills/research/SKILL.md`를 한 번만 작성:
+
+```yaml
+---
+name: research
+description: Use when the user asks to research a topic, analyze links, collect references, or study a new tool/product (트리거 — 리서치, 연구, 조사, research). Follow the standardized pipeline to produce consistent research notes across all bots.
+license: MIT
+---
+
+# Research Methodology Skill
+
+(파이프라인 6단계 요약, frontmatter 필수 필드, 피어 리뷰 규칙, PII 금지 등을 여기 본문에)
+```
+
+그 후 모든 CC 봇이 세션 시작 시 자동 로드. 트리거 키워드(리서치·research·연구·조사·investigate·study) 감지 시 스킬이 활성화되면서 "가이드를 먼저 Read 하라"고 봇에게 지시.
+
+### 실제 가이드 파일은 shared-knowledge에
+
+스킬 본문은 요약만. 상세 방법론은:
+```
+~/.openclaw/workspace/shared-knowledge/guides/research-methodology.md
+```
+에 두고 스킬이 이 경로를 포인터로 안내.
+
+shared-knowledge는 각 봇 워크스페이스에 symlink로 공유:
+```bash
+ln -s ~/.openclaw/workspace/shared-knowledge ~/agents/봇-channels/shared-knowledge
+```
+
+### 효과
+
+- 신규 봇 생성해도 연구 방법론 자동 적용
+- 가이드 하나 수정하면 모든 봇 즉시 반영 (symlink + user scope 스킬)
+- 봇이 "까먹고 지나가는" 실수 방지 (스킬 트리거 = 강제 호출)
+
+---
+
 # v1.2 (2026-04-11)
 
 ## 텔레그램 Forum 토픽 지원
